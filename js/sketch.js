@@ -15,11 +15,11 @@
 */
 let game;
 
-function preload() {
-    game = new Game();
-    game.spaceImg = loadImage("./assets/spaceship.png");
-    game.enemyImg = loadImage("./assets/alien1.png");
-}
+game = new Game();
+game.spaceImg = loadImage("./assets/spaceship.png");
+game.enemyImg = loadImage("./assets/alien1.png");
+game.shootSound = loadSound("./assets/shoot.mp3");
+game.hitSound = loadSound("./assets/hit.mp3");
 
 function setup() {
     createCanvas(800, 600);
@@ -61,13 +61,15 @@ function draw() {
         game.playerProjectiles[i].show();
         game.playerProjectiles[i].move();
         for (let j = 0; j < game.enemies.length; j++) {
-            if (game.playerProjectiles[i].hit(game.enemies[j])) {
-                game.killedEnemies++;
-                game.score++;
-                game.enemies.splice(j, 1);
-                game.playerProjectiles.splice(i, 1);
-                i--;
-                break;
+if (game.playerProjectiles[i].hit(game.enemies[j])) {
+    game.hitSound.play();
+    game.killedEnemies++;
+    game.score++;
+    game.enemies.splice(j, 1);
+    game.playerProjectiles.splice(i, 1);
+    i--;
+    break;
+}
             }
         }
     }
@@ -88,10 +90,10 @@ function draw() {
     game.drawStars();
 }
 
-function keyPressed() {
-    if (key === " ") {
-        game.playerProjectiles.push(new Projectile(game.player.x, game.player.y, -1));
-    }
+if (key === " ") {
+    game.shootSound.play();
+    game.playerProjectiles.push(new Projectile(game.player.x, game.player.y, -1));
+}
 }
 
 class Game {
