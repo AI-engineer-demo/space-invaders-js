@@ -3,10 +3,25 @@
   <head>
     <script src="js/p5.min.js"></script>
     <script src="js/sketch.js"></script>
-     <script>
-    </script>
+<script>
+    function startGame() {
+        let selectedDifficulty = document.getElementById('difficulty').value;
+        game.setDifficulty(selectedDifficulty);
+        loop(); // Start the p5.js draw loop
+    }
+</script>
   </head>
   <body>
-
+    <div id="start-screen">
+        <h1>Space Invaders</h1>
+        <label for="difficulty">Select Difficulty:</label>
+        <select id="difficulty">
+            <option value="easy">Easy</option>
+            <option value="advanced">Advanced</option>
+            <option value="expert">Expert</option>
+        </select>
+        <button onclick="startGame()">Start Game</button>
+    </div>
+    <script src="js/gameSettings.js"></script>
   </body>
 </html>

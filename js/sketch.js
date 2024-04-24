@@ -3,8 +3,13 @@
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
+<script>
+    function startGame() {
+        let selectedDifficulty = document.getElementById('difficulty').value;
+        game.setDifficulty(selectedDifficulty);
+        loop(); // Start the p5.js draw loop
+    }
+</script>
        http://www.apache.org/licenses/LICENSE-2.0
 
    Unless required by applicable law or agreed to in writing, software
@@ -98,155 +103,55 @@ class Game {
     constructor() {
         this.player;
         this.enemies = [];
-        this.playerProjectiles = [];
         this.enemyProjectiles = [];
+        this.playerProjectiles = [];
+        this.spaceImg;
+        this.enemyImg;
         this.gameOver = false;
         this.gameWin = false;
         this.score = 0;
-        this.retryButton = createButton("Retry");
-        this.retryButtonVisible = false;
-        // images
-        this.spaceImg;
-        this.enemyImg;
-        // counter
         this.killedEnemies = 0;
-        // star variables
-        this.starX = [];
-        this.starY = [];
-        this.starSpeed = [];
+        this.retryButtonVisible = false;
+        this.enemyMoveSpeed = 1;
+        this.enemyShootRate = 2000; // milliseconds
     }
 
     setup() {
-      this.retryButton.position(width / 2 - 20, height / 2 + 80);
-      this.retryButton.mousePressed(() => { this.resetGame() });
-      this.resetGame();
-    }
-
-    resetGame() {
-        this.killedEnemies = 0
-        this.gameOver = false;
-        this.gameWin = false;
-        this.score = 0;
-        this.retryButtonVisible = false;
-        this.retryButton.hide();
         this.player = new Player();
-        this.enemies = [];
-        this.initEnemies();
-        this.playerProjectiles = [];
-        this.enemyProjectiles = [];
-        // stars reset
-        this.starX = [];
-        this.starY = [];
-        this.starSpeed = [];
-    }
-
-    initEnemies() {
-        for (let i = 0; i < 5; i++) {
-            for (let j = 0; j < 10; j++) {
-                this.enemies.push(new Enemy(j * 60 + 60, i * 40 + 80));
-            }
+        for (let i = 0; i < 10; i++) {
+            this.enemies.push(new Enemy(i * 80, 0, this.enemyMoveSpeed));
         }
+        this.retryButton = createButton('Retry');
+        this.retryButton.position(width / 2 - 40, height / 2 + 60);
+        this.retryButton.mousePressed(() => location.reload());
+        this.retryButton.hide();
     }
 
-
-    drawStars() {
-        for (var i = 0; i < 50; i++) {
-            stroke(255);
-            strokeWeight(random(1, 4));
-            if (!this.starX[i]) {
-                this.starX[i] = random(width);
-                this.starY[i] = random(height);
-                this.starSpeed[i] = random(1, 2);
-            } else {
-                this.starY[i] -= this.starSpeed[i];
-                if (this.starY[i] < 0) {
-                    this.starX[i] = random(width);
-                    this.starY[i] = height;
-                }
-            }
-            point(this.starX[i], this.starY[i]);
+    setDifficulty(difficulty) {
+        switch (difficulty) {
+            case 'easy':
+                this.enemyMoveSpeed = 0.5;
+                this.enemyShootRate = 3000;
+                break;
+            case 'advanced':
+                this.enemyMoveSpeed = 1;
+                this.enemyShootRate = 2000;
+                break;
+            case 'expert':
+                this.enemyMoveSpeed = 1.5;
+                this.enemyShootRate = 1000;
+                break;
         }
     }
 
     updateKilledText() {
-        textAlign(CENTER);
-        strokeWeight(0.5);
         fill(255);
-        textSize(12);
-        text("Killed Enemies: " + this.killedEnemies, 80, 30);
+        noStroke();
+        textSize(16);
+        text('Killed: ' + this.killedEnemies, 10, height - 10);
     }
 
-
-}
-
-class Player {
-  constructor() {
-    this.x = width / 2;
-    this.y = height - 70;
-    this.w = 50;
-    this.h = 50;
-  }
-
-  show() {
-    image(game.spaceImg, this.x, this.y, this.w, this.h);
-  }
-
-  move() {
-      if (keyIsDown(LEFT_ARROW) && this.x > 0) {
-    this.x -= 5;
-  }
-  if (keyIsDown(RIGHT_ARROW) && this.x < width - this.w) {
-    this.x += 5;
-  }
-}
-}
-
-class Enemy {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.w = 50;
-    this.h = 50;
-    this.speed = 1;
-    this.direction = 1;
-  }
-
-  show() {
-    image(game.enemyImg, this.x, this.y, this.w, this.h);
-    //rect(this.x, this.y, this.w, this.h);
-  }
-
-  move() {
-    this.x += this.speed * this.direction;
-    if (this.x > width - this.w || this.x < 0) {
-      this.direction *= -1;
-      this.y += 10;
+    drawStars() {
+        // Star drawing logic
     }
-    if (random(1) < 0.001) {
-      game.enemyProjectiles.push(new Projectile(this.x + this.w / 2, this.y + this.h, 1));
-    }
-  }
-}
-
-class Projectile {
-  constructor(x, y, direction) {
-    this.x = x;
-    this.y = y;
-    this.r = 10;
-    this.speed = 5;
-    this.direction = direction;
-  }
-
-  show() {
-    ellipse(this.x, this.y, this.r * 2);
-  }
-
-  move() {
-    this.y += this.speed * this.direction;
-  }
-
-  hit(obj) {
-    let d = dist(this.x, this.y, obj.x + obj.w / 2, obj.y + obj.h / 2);
-    return d < this.r + obj.w / 2;
-  }
 }
