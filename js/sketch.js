@@ -22,14 +22,14 @@ function preload() {
 }
 
 function setup() {
+    if (!window.gameDifficulty) return;
     createCanvas(800, 600);
     translate(width / 2, height / 2);
-    game.setup();
-
+    game.setup(window.gameDifficulty);
 }
 
-
 function draw() {
+    if (!window.gameDifficulty) return;
     background(0);
     strokeWeight(1);
 
@@ -114,16 +114,18 @@ class Game {
         this.starX = [];
         this.starY = [];
         this.starSpeed = [];
+        this.difficulty = 'Easy';
     }
 
-    setup() {
-      this.retryButton.position(width / 2 - 20, height / 2 + 80);
-      this.retryButton.mousePressed(() => { this.resetGame() });
-      this.resetGame();
+    setup(difficulty) {
+        this.difficulty = difficulty;
+        this.retryButton.position(width / 2 - 20, height / 2 + 80);
+        this.retryButton.mousePressed(() => { this.resetGame() });
+        this.resetGame();
     }
 
     resetGame() {
-        this.killedEnemies = 0
+        this.killedEnemies = 0;
         this.gameOver = false;
         this.gameWin = false;
         this.score = 0;
@@ -143,11 +145,10 @@ class Game {
     initEnemies() {
         for (let i = 0; i < 5; i++) {
             for (let j = 0; j < 10; j++) {
-                this.enemies.push(new Enemy(j * 60 + 60, i * 40 + 80));
+                this.enemies.push(new Enemy(j * 60 + 60, i * 40 + 80, this.difficulty));
             }
         }
     }
-
 
     drawStars() {
         for (var i = 0; i < 50; i++) {
@@ -175,78 +176,102 @@ class Game {
         textSize(12);
         text("Killed Enemies: " + this.killedEnemies, 80, 30);
     }
-
-
 }
 
 class Player {
-  constructor() {
-    this.x = width / 2;
-    this.y = height - 70;
-    this.w = 50;
-    this.h = 50;
-  }
+    constructor() {
+        this.x = width / 2;
+        this.y = height - 70;
+        this.w = 50;
+        this.h = 50;
+    }
 
-  show() {
-    image(game.spaceImg, this.x, this.y, this.w, this.h);
-  }
+    show() {
+        image(game.spaceImg, this.x, this.y, this.w, this.h);
+    }
 
-  move() {
-      if (keyIsDown(LEFT_ARROW) && this.x > 0) {
-    this.x -= 5;
-  }
-  if (keyIsDown(RIGHT_ARROW) && this.x < width - this.w) {
-    this.x += 5;
-  }
-}
+    move() {
+        if (keyIsDown(LEFT_ARROW) && this.x > 0) {
+            this.x -= 5;
+        }
+        if (keyIsDown(RIGHT_ARROW) && this.x < width - this.w) {
+            this.x += 5;
+        }
+    }
 }
 
 class Enemy {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.w = 50;
-    this.h = 50;
-    this.speed = 1;
-    this.direction = 1;
-  }
-
-  show() {
-    image(game.enemyImg, this.x, this.y, this.w, this.h);
-    //rect(this.x, this.y, this.w, this.h);
-  }
-
-  move() {
-    this.x += this.speed * this.direction;
-    if (this.x > width - this.w || this.x < 0) {
-      this.direction *= -1;
-      this.y += 10;
+    constructor(x, y, difficulty) {
+        this.x = x;
+        this.y = y;
+        this.w = 50;
+        this.h = 50;
+        this.speed = this.setSpeed(difficulty);
+        this.direction = 1;
+        this.shootRate = this.setShootRate(difficulty);
     }
-    if (random(1) < 0.001) {
-      game.enemyProjectiles.push(new Projectile(this.x + this.w / 2, this.y + this.h, 1));
+
+    setSpeed(difficulty) {
+        switch (difficulty) {
+            case 'Easy':
+                return 1;
+            case 'Advanced':
+                return 2;
+            case 'Expert':
+                return 3;
+            default:
+                return 1;
+        }
     }
-  }
+
+    setShootRate(difficulty) {
+        switch (difficulty) {
+            case 'Easy':
+                return 0.001;
+            case 'Advanced':
+                return 0.01;
+            case 'Expert':
+                return 0.02;
+            default:
+                return 0.001;
+        }
+    }
+
+    show() {
+        image(game.enemyImg, this.x, this.y, this.w, this.h);
+    }
+
+    move() {
+        this.x += this.speed * this.direction;
+        if (this.x > width - this.w || this.x < 0) {
+            this.direction *= -1;
+            this.y += 10;
+        }
+        if (random(1) < this.shootRate) {
+            game.enemyProjectiles.push(new Projectile(this.x + this.w / 2, this.y + this.h, 1));
+        }
+    }
 }
 
 class Projectile {
-  constructor(x, y, direction) {
-    this.x = x;
-    this.y = y;
-    this.r = 10;
-    this.speed = 5;
-    this.direction = direction;
-  }
+    constructor(x, y, direction) {
+        this.x = x;
+        this.y = y;
+        this.r = 10;
+        this.speed = 5;
+        this.direction = direction;
+    }
 
-  show() {
-    ellipse(this.x, this.y, this.r * 2);
-  }
+    show() {
+        ellipse(this.x, this.y, this.r * 2);
+    }
 
-  move() {
-    this.y += this.speed * this.direction;
-  }
+    move() {
+        this.y += this.speed * this.direction;
+    }
 
-  hit(obj) {
-    let d = dist(this.x, this.y, obj.x + obj.w / 2, obj.y + obj.h / 2);
-    return d < this.r + obj.w / 2;
-  }
+    hit(obj) {
+        let d = dist(this.x, this.y, obj.x + obj.w / 2, obj.y + obj.h / 2);
+        return d < this.r + obj.w / 2;
+    }
 }
