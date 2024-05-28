@@ -3,10 +3,20 @@
   <head>
     <script src="js/p5.min.js"></script>
     <script src="js/sketch.js"></script>
-     <script>
-    </script>
   </head>
   <body>
-
+    <div id="startScreen">
+      <h1>Select Difficulty</h1>
+      <button onclick="startGame('Easy')">Easy</button>
+      <button onclick="startGame('Advanced')">Advanced</button>
+      <button onclick="startGame('Expert')">Expert</button>
+    </div>
+    <script>
+      function startGame(difficulty) {
+        document.getElementById('startScreen').style.display = 'none';
+        window.gameDifficulty = difficulty;
+        window.setup();
+      }
+    </script>
   </body>
 </html>
